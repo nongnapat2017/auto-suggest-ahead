@@ -5,10 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <title>Auto Suggest Ahead WTF!!!</title>
+    <style>
+        html {
+            box-sizing: border-box;
+        }
+        *,*:before,*:after {
+            box-sizing: inherit;
+        }
+        .form-container {
+            width: 400px;
+            margin: 40px auto;
+        }
+        input {
+            width: 100%
+        }
+        input.search {
+            border: 2px solid purple;
+            border-radius: 7px;
+            padding: 20px;
+            font-size: 24px;
+            text-align: center;
+            outline: 0;
+        }
+        input.search:focus {
+            box-shadow: 4px 6px 51px -1px rgba(240,147,240,1);
+        }
+        ul.suggestions {
+            border: 2px dashed #AF7AC5;
+            border-radius: 7px;
+            padding: 0;
+            margin: 5px 0;
+            list-style: none;
+        }
+        ul.suggestions:empty {
+            border: none;
+        }
+        li.suggestion {
+            padding: 5px 20px;
 
-    <input type="text" id="autocomplete">
+        }
+        li.suggestion:nth-child(even) {
+            background: #EBDEF0;
+        }
+
+        li.suggestion:nth-child(odd) {
+            background: #D7BDE2;
+        }
+    </style>
 </head>
 <body>
+    <div class="form-container">
+        <div>
+            <input id="search" type="text" class="search">
+            <ul class="suggestions"></ul>   
+        </div>
+    </div>
 
 <script>
 const citiesEndpoint = "https://gist.githubusercontent.com/koramit/594b1b217cf6b5d1bf084fa27de09b8d/raw/5f73f96dbad9aac88951c1e1a2c6804df3487a9b/thai-subDistricts.json";
@@ -16,21 +67,32 @@ const cities = [];
 fetch(citiesEndpoint)
     .then(blob => blob.json())
     .then(data => cities.push(...data));
+const inputSearch = document.querySelector("#search");
 
-    function searchCities(event)
-    {
-        let search = event.target.value;
+function searchCities() {
+    let ul  = document.querySelector("ul.suggestions");
 
-        let suggestion = cities.filter((city) => {
-            return (city.district.indexOf(search) !== -1 ||
-                    city.amphoe.indexOf(search) !== -1 ||
-                    city.province.indexOf(search) !== -1
-                    )
-        })
-        console.log(suggestion)
+    if (this.value.length < 3 ) {
+        ul.innerHTML = "";
+        return ;
     }
-    let input = document.getElementById("autocomplete");
-    input.addEventListener("input", searchCities)
+    let matchArray = cities.filter(c => {
+        if( c.district.indexOf(this.value) > -1 || 
+            c.amphoe.indexOf(this.value) > -1 ||
+            c.province.indexOf(this.value) > -1 ||
+            (c.zipcode + "").indexOf(this.value) > -1 
+          ) return true;
+    })
+
+    let items = matchArray.slice(0, 15).map(c => {
+        let label = `${c.district} ${c.amphoe} ${c.province} ${c.zipcode}`
+        return `<li class="suggestion">${label}</li>`
+    });
+    console.log(items)
+    ul.innerHTML = items.join("")
+}
+
+inputSearch.addEventListener("input", searchCities)
 </script>
 </body>
 </html>
