@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <title>Auto Suggest Ahead WTF!!!</title>
+
+    <input type="text" id="autocomplete">
 </head>
 <body>
 
@@ -14,6 +16,21 @@ const cities = [];
 fetch(citiesEndpoint)
     .then(blob => blob.json())
     .then(data => cities.push(...data));
+
+    function searchCities(event)
+    {
+        let search = event.target.value;
+
+        let suggestion = cities.filter((city) => {
+            return (city.district.indexOf(search) !== -1 ||
+                    city.amphoe.indexOf(search) !== -1 ||
+                    city.province.indexOf(search) !== -1
+                    )
+        })
+        console.log(suggestion)
+    }
+    let input = document.getElementById("autocomplete");
+    input.addEventListener("input", searchCities)
 </script>
 </body>
 </html>
