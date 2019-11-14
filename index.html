@@ -4,21 +4,25 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
-    <title>Auto Suggest Ahead WTF!!!</title>
+    <title>Auto Suggest Ahead WTFest !!!</title>
     <style>
         html {
             box-sizing: border-box;
         }
+
         *,*:before,*:after {
             box-sizing: inherit;
         }
+
         .form-container {
             width: 400px;
             margin: 40px auto;
         }
+
         input {
             width: 100%
         }
+
         input.search {
             border: 2px solid purple;
             border-radius: 7px;
@@ -27,23 +31,36 @@
             text-align: center;
             outline: 0;
         }
+
         input.search:focus {
             box-shadow: 4px 6px 51px -1px rgba(240,147,240,1);
         }
+        
         ul.suggestions {
             border: 2px dashed #AF7AC5;
             border-radius: 7px;
             padding: 0;
             margin: 5px 0;
             list-style: none;
+            max-height: 300px;
+            overflow-y: scroll; /*สิ่งที่เกินนอกเหนือจากความสูง 300px ให้ซ่อนเอาไว้*/
+            overflow-x: hidden;
+            position: absolute; /*ให้อยู่ข้างหน้า div อื่น*/
+            width: 100%;
+            transition: .3s max-height ease-in-out; /* เวลาในการเปลี่ยน state*/
         }
+
         ul.suggestions:empty {
             border: none;
+            max-height: 0;
         }
+
         li.suggestion {
             padding: 5px 20px;
-
+            cursor: pointer;
+            transition: .3s transform ease; /* เวลาในการเปลี่ยน state*/
         }
+
         li.suggestion:nth-child(even) {
             background: #EBDEF0;
         }
@@ -51,14 +68,25 @@
         li.suggestion:nth-child(odd) {
             background: #D7BDE2;
         }
+        
+        li.suggestion:hover {
+            background: #fcfcfc;
+            transform: scale(1.1)
+        }
+
+        .hl {
+            /* color: red; */  /* สีของ label */
+            background: yellow;
+        }
     </style>
 </head>
 <body>
     <div class="form-container">
-        <div>
-            <input id="search" type="text" class="search">
+        <div style="position: relative;"> <!-- position relative จะเป็นจุด reference ของ position absolute -->
+            <input id="search" type="text" class="search" autocomplete="false">
             <ul class="suggestions"></ul>   
         </div>
+        <div id="result">search result</div>
     </div>
 
 <script>
@@ -69,13 +97,20 @@ fetch(citiesEndpoint)
     .then(data => cities.push(...data));
 const inputSearch = document.querySelector("#search");
 
+const ul  = document.querySelector("ul.suggestions");
+
+const result = document.getElementById("result");
+
+let selectedItemCode = 0;
+
 function searchCities() {
-    let ul  = document.querySelector("ul.suggestions");
 
     if (this.value.length < 3 ) {
         ul.innerHTML = "";
+        result.innerText = "search result";
         return ;
     }
+
     let matchArray = cities.filter(c => {
         if( c.district.indexOf(this.value) > -1 || 
             c.amphoe.indexOf(this.value) > -1 ||
@@ -86,10 +121,27 @@ function searchCities() {
 
     let items = matchArray.slice(0, 15).map(c => {
         let label = `${c.district} ${c.amphoe} ${c.province} ${c.zipcode}`
-        return `<li class="suggestion">${label}</li>`
+        let formattedLabel = label.replace(this.value, `<span class="hl">${this.value}</span>`)
+        return `
+            <li 
+                class="suggestion" 
+                onclick="select(event)" 
+                data-code="${c.district_code}"
+                >
+                ${formattedLabel}
+            </li>
+        `;
     });
     console.log(items)
     ul.innerHTML = items.join("")
+}
+
+function select(event) {
+    console.log(event.target);
+    result.innerText = event.target.innerText;
+    selectedItemCode = event.target.dataset.code;
+    console.log(selectedItemCode);
+    ul.innerHTML = "";
 }
 
 inputSearch.addEventListener("input", searchCities)
